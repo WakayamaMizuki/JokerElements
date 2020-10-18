@@ -1,0 +1,29 @@
+﻿<Properties StartupConfiguration="{B75B525F-D4B4-D9CA-EDFE-F58C2751A28C}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Game.cs">
+    <Files>
+      <File FileName="Assets/NPCScript.cs" Line="18" Column="49" IsPinned="True" />
+      <File FileName="Assets/Game.cs" Line="382" Column="14" />
+      <File FileName="Assets/UIScript.cs" Line="17" Column="28" />
+      <File FileName="Assets/UIButton.cs" Line="27" Column="9" />
+      <File FileName="Assets/UserPUN.cs" Line="12" Column="12" />
+      <File FileName="Assets/CardScript.cs" Line="29" Column="5" />
+      <File FileName="Assets/UserCardScript.cs" Line="24" Column="3" />
+      <File FileName="Assets/User.cs" Line="20" Column="22" />
+      <File FileName="Assets/UserName.cs" Line="22" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="MonoDevelop.UnitTesting.TestPad">
+        <State name="__root__">
+          <Node name="JokerElements" expanded="True" selected="True" />
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="79233d88-b020-496a-a64c-81a28534344f" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
