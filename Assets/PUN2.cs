@@ -2,18 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Photon.Realtime;
 using Photon.Pun;
 
 public class PUN2 : MonoBehaviourPunCallbacks
 {
     public byte maxPlayers = 2;
-    //[SerializeField] Text connectionText;
-    // Use this for initialization
+    [SerializeField] Text connectionText;
+    [SerializeField] Transform[] spawnPoints;
+
     void Start()
     {
-        //PhotonNetwork.logLevel = PhotonLogLevel.Full;
-        //旧バージョンでは引数必須でしたが、PUN2では不要です。
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -40,14 +40,7 @@ public class PUN2 : MonoBehaviourPunCallbacks
 
     //ルームに入室後に呼び出される
     public override void OnJoinedRoom()
-    {
-        //キャラクターを生成
-        //GameObject player = PhotonNetwork.Instantiate("PlayerObject", Vector3.zero, Quaternion.identity, 0);
-        //GameObject gameController = (GameObject)PhotonNetwork.Instantiate("GameController", Vector3.zero, Quaternion.identity, 0);
-       //gameController.name = "GameController";
-        //GameObject player = (GameObject)PhotonNetwork.Instantiate("UserController", Vector3.zero, Quaternion.identity, 0);
-
-        GameObject player = (GameObject)Instantiate((GameObject)Resources.Load("UserController"), Vector3.zero, Quaternion.identity);
+    {     
         int index = 0;
         if (PhotonNetwork.PlayerList.Length == 1)//一人目の場合
         {
@@ -63,7 +56,8 @@ public class PUN2 : MonoBehaviourPunCallbacks
             //MyUser.GetComponent<UserCardScript>().PlayerNumber = 2;
             index = 1;
         }
-
+        //GameObject player = (GameObject)Instantiate((GameObject)Resources.Load("UserController"), Vector3.zero, Quaternion.identity);
+        GameObject player = (GameObject)PhotonNetwork.Instantiate("UserController", Vector3.zero, Quaternion.identity, 0);
         player.GetComponent<UserPUN>().PlayerNumber = index;
         player.name = "UserController";
 

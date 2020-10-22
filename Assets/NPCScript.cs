@@ -5,7 +5,7 @@ using UnityEngine;
 public class NPCScript : MonoBehaviour {
 
     GameObject GameController;
-    public static int PlayerNumber;
+    public int PlayerNumber;
     Game game;
     GamePlayer player;
     GamePlayer Enemy;
@@ -16,9 +16,8 @@ public class NPCScript : MonoBehaviour {
     void Start () {
         GameController = GameObject.Find("GameController");
         game = GameController.GetComponent<Game>();
-        PlayerNumber = (GameObject.Find("UserController").GetComponent<User>().PlayerNumber + 1) % 2;
-        player = game.Player[PlayerNumber];
-        Enemy = game.Player[(PlayerNumber) % 2];
+        player = game.Player[(PlayerNumber) % 2];
+        Enemy = game.Player[(PlayerNumber + 1) % 2];
         InvokeRepeating("NPCMove",3,1);
 	}
 	
@@ -28,46 +27,53 @@ public class NPCScript : MonoBehaviour {
         {
             player.DrawCard();
         }
-        //Enemy.placeCard = Enemy.placeCard;
-        //player.HandCard = game.player.HandCard;
     }
 
     void NPCMove()
     {
-        if(player.MyTurn && !player.Is7){
-            List<int> n = NPC();
-            List<Card> p = new List<Card>();
-            if (n[0] != -1)
+        if(player.MyTurn){
+            if (!player.Is7 && !player.Is10)
             {
-
-                for (int i = 0; i < n.Count; i++)
+                List<int> n = NPC();
+                List<Card> p = new List<Card>();
+                if (n[0] != -1)
                 {
-                    p.Add(player.HandCard[n[i]]);
+
+                    for (int i = 0; i < n.Count; i++)
+                    {
+                        p.Add(player.HandCard[n[i]]);
+                    }
+                    PlaceCard card = new PlaceCard(p);
+                    player.CardRequest = card;
+                    player.CardChanged = true;
+                }
+                else
+                {
+                    player.pass();
+                }
+            }
+            else if (player.Is7)
+            {
+                List<Card> p = new List<Card>();
+                for (int i = 0; i < player.placeCard.count7; i++)
+                {
+                    p.Add(player.HandCard[i]);
                 }
                 PlaceCard card = new PlaceCard(p);
                 player.CardRequest = card;
                 player.CardChanged = true;
             }
-            else
+            else if (player.Is10)
             {
-                player.pass();
+                List<Card> p = new List<Card>();
+                for (int i = 0; i < player.placeCard.count10; i++)
+                {
+                    p.Add(player.HandCard[i]);
+                }
+                PlaceCard card = new PlaceCard(p);
+                player.CardRequest = card;
+                player.CardChanged = true;
             }
-        }
-        else if(player.MyTurn && player.Is7)
-        {
-            int Count7 = 0;
-            for(int i = 0;i < player.HandCard.Count; i++)
-            {
-                if (player.HandCard[i].num == 7) Count7++;
-            }
-            List<Card> p = new List<Card>();
-            for (int i = 0; i < Count7; i++)
-            {
-                p.Add(player.HandCard[i]);
-            }
-            PlaceCard card = new PlaceCard(p);
-            player.CardRequest = card;
-            player.CardChanged = true;
         }
     }
 
@@ -75,7 +81,7 @@ public class NPCScript : MonoBehaviour {
     {
         List<int> s = new List<int>();
         if (Enemy.placeCard != null){
-            if(Enemy.placeCard.cardNum == 1){
+            if(Enemy.placeCard.cards.Count == 1){
                 for (int i = 0; i < player.HandCard.Count; i++)
                 {
                     Card card = player.HandCard[i];
@@ -102,7 +108,7 @@ public class NPCScript : MonoBehaviour {
                             for (int j = i + 1; j < player.HandCard.Count; j++)
                             {
                                 Card nextCard = player.HandCard[j];
-                                if (nextCard != null && nextCard.num == card.num)
+                                if (nextCard != null && nextCard.num == card.num && s.Count < Enemy.placeCard.cards.Count)
                                 {
                                     s.Add(j);
                                 }
@@ -119,6 +125,10 @@ public class NPCScript : MonoBehaviour {
         }else{
             if(player.HandCard.Count > 0){
                 s.Add(0);
+                for(int i = 1;i < player.HandCard.Count; i++)
+                {
+                    if (player.HandCard[0].num == player.HandCard[i].num) s.Add(i);
+                }
             }else{
                 s.Add(-1);
             }

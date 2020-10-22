@@ -1,27 +1,21 @@
 ﻿<Properties StartupConfiguration="{B75B525F-D4B4-D9CA-EDFE-F58C2751A28C}|">
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Game.cs">
     <Files>
-      <File FileName="Assets/NPCScript.cs" Line="18" Column="49" IsPinned="True" />
-      <File FileName="Assets/Game.cs" Line="382" Column="14" />
-      <File FileName="Assets/UIScript.cs" Line="17" Column="28" />
-      <File FileName="Assets/UIButton.cs" Line="27" Column="9" />
-      <File FileName="Assets/UserPUN.cs" Line="12" Column="12" />
-      <File FileName="Assets/CardScript.cs" Line="29" Column="5" />
-      <File FileName="Assets/UserCardScript.cs" Line="24" Column="3" />
-      <File FileName="Assets/User.cs" Line="20" Column="22" />
-      <File FileName="Assets/UserName.cs" Line="22" Column="1" />
+      <File FileName="Assets/NPCScript.cs" Line="18" Column="52" />
+      <File FileName="Assets/Game.cs" Line="73" Column="1" />
+      <File FileName="Assets/UIScript.cs" />
+      <File FileName="Assets/UIButton.cs" />
+      <File FileName="Assets/UserPUN.cs" />
+      <File FileName="Assets/CardScript.cs" />
+      <File FileName="Assets/UserCardScript.cs" />
+      <File FileName="Assets/User.cs" Line="4" Column="35" />
+      <File FileName="Assets/UserName.cs" />
+      <File FileName="Assets/PUN2.cs" />
     </Files>
-    <Pads>
-      <Pad Id="MonoDevelop.UnitTesting.TestPad">
-        <State name="__root__">
-          <Node name="JokerElements" expanded="True" selected="True" />
-        </State>
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="79233d88-b020-496a-a64c-81a28534344f" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="6c7954d0-e8fd-42d0-ab92-00a06dcc84c3" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

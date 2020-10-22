@@ -24,16 +24,6 @@ public class UIButton : MonoBehaviour {
 
     public void GameNPC()
     {
-        
-        int rnd = Random.Range(0, 2);
-        if(rnd == 1)
-        {
-        
-        }
-        else
-        {
-
-        }
         SceneManager.LoadScene("GameNPC");
     }
 

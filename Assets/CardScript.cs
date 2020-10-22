@@ -9,64 +9,61 @@ public class CardScript : MonoBehaviour
     private GameObject GameController;
     private GameObject CardSprite;
     Game game;
-    private int PlayerNumber;
+    public int PlayerNumber;
     private GamePlayer player;
     private GamePlayer enemy;
+    private bool first = true;
     // Use this for initialization
     void Start()
     {
         CardSprite = (GameObject)Resources.Load("Card");
-        if (GameObject.Find("UserController").GetComponent<UserPUN>() != null)
-        {
-            PlayerNumber = GameObject.Find("UserController").GetComponent<UserPUN>().PlayerNumber;
-        }else{
-            PlayerNumber = GameObject.Find("UserController").GetComponent<User>().PlayerNumber;
-        }
-
         
         if(GameObject.Find("GameController") != null)
         {
-            GameController = GameObject.Find("GameController");
+            game = GameObject.Find("GameController").GetComponent<Game>();
         }
-        else
+        else if (GameObject.Find("GameController(Clone)") != null)
         {
-            GameController = GameObject.Find("GameController(Clone)");
-        }
-        game = GameController.GetComponent<Game>();
-        
-
-        player = game.Player[PlayerNumber];
-        enemy = game.Player[(PlayerNumber + 1) % 2];
-
-        /*
-        for(int i = 0;i < 2; i++)
-        {
-            if (GameObject.FindGameObjectsWithTag("UserCard")[i].GetComponent<PhotonView>().IsMine)
-            {
-                player = game.Player[0];
-                enemy = game.Player[1];
-            }
-            else
-            {
-
-            }
-        }*/
+            game = GameObject.Find("GameController(Clone)").GetComponent<Game>();
+        }       
     }
 
     // Update is called once per frameusing Photon.Pun;
     void Update()
     {
-        if (player == null || enemy == null)
+        if (game == null)
+        {
+            if (GameObject.Find("GameController") != null)
+            {
+                game = GameObject.Find("GameController").GetComponent<Game>();
+            }
+            else if (GameObject.Find("GameController(Clone)") != null)
+            {
+                game = GameObject.Find("GameController(Clone)").GetComponent<Game>();
+            }
+        }
+        
+
+        if (game != null && PlayerNumber != -1)
         {
             player = game.Player[PlayerNumber];
             enemy = game.Player[(PlayerNumber + 1) % 2];
+            PlayerNumber = -1;
         }
-        
+
         if (enemy != null)
         {
-            if (enemy.CardSpriteChanged || player.CardSpriteChanged) SetPlaceCard();
-            CardTextureSet();
-            CardPlaceSet();
+            if (enemy.CardSpriteChanged || player.CardSpriteChanged)
+            {
+                SetPlaceCard();
+                
+            }
+            if(enemy.HandCard != null && player.HandCard != null)
+            {
+                CardTextureSet();
+                CardPlaceSet();
+            }
+            
         }
     }
 
@@ -80,7 +77,7 @@ public class CardScript : MonoBehaviour
             {
                 if (GameObject.Find("PlayerPlaceCard" + i) == null)
                 {
-                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i - 3, 0, 0), Quaternion.identity);
+                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i - 3, -1, 0), Quaternion.identity);
                     instance.name = "PlayerPlaceCard" + i;
                     Texture(instance.GetComponent<SpriteRenderer>(), player.placeCard.cards[i].imageIndex);
                 }
@@ -113,7 +110,11 @@ public class CardScript : MonoBehaviour
                 if (GameObject.Find("EnemyPlaceCard" + i) == null)
                 {
                     GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i, 1, 0), Quaternion.identity);
-                    instance.name = "EnemyPlaceCard" + i;
+                    if (enemy.placeCard.cards[i] != null)
+                    {
+                        instance.name = "EnemyPlaceCard" + i;
+                    }
+                    
                     Texture(instance.GetComponent<SpriteRenderer>(), enemy.placeCard.cards[i].imageIndex);
                 }
                 else
@@ -152,9 +153,13 @@ public class CardScript : MonoBehaviour
             {
                 if (card == null)
                 {
-                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i - 3, -2, 0), Quaternion.identity);
-                    instance.name = "HandCard" + i;
-                    instance.tag = "HandCard";
+                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i - 3, -3, 0), Quaternion.identity);
+                    if (player.HandCard[i] != null)
+                    {
+                        instance.name = "HandCard" + i;
+                        instance.tag = "HandCard";
+                    }
+                    
                     Texture(instance.GetComponent<SpriteRenderer>(), player.HandCard[i].imageIndex);
                 }
                 else
@@ -175,7 +180,7 @@ public class CardScript : MonoBehaviour
             {
                 if (card == null)
                 {
-                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i, 2.5f, 0), Quaternion.identity);
+                    GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i-1, 3f, 0), Quaternion.identity);
                     instance.name = "EnemyHandCard" + i;
                     instance.tag = "EnemyHandCard";
                     Texture(instance.GetComponent<SpriteRenderer>(), enemy.HandCard[i].imageIndex);
@@ -191,6 +196,7 @@ public class CardScript : MonoBehaviour
             }
         }
 
+        
         GameObject[] cards = GameObject.FindGameObjectsWithTag("EnemyHandCard");
         for (int i = cards.Length - 1; i >= 0; i--)
         {
@@ -212,49 +218,23 @@ public class CardScript : MonoBehaviour
 
     void CardPlaceSet()
     {
-        //List<Card> myhand = player.HandCard;
         for (int i = 0; i < player.HandCard.Count; i++)
         {
             GameObject card = GameObject.Find("HandCard" + i);
             if (player.HandCard[i].IsPrepare)
             {
-                card.GetComponent<Transform>().position = new Vector3(i - 3, -1.5f, 0);
+                card.GetComponent<Transform>().position = new Vector3(i - 3, -2.5f, 0);
             }
             else
             {
-                card.GetComponent<Transform>().position = new Vector3(i - 3, -2f, 0);
+                card.GetComponent<Transform>().position = new Vector3(i - 3, -3f, 0);
             }
         }
     }
 
+    
     void Texture(SpriteRenderer s, int index)
     {
-        s.sprite = Resources.LoadAll<Sprite>("Deck-72x100x16")[index];
-        /*
-        if (index < 52)
-        {
-            string mark = "";
-            switch (index / 13)
-            {
-                case 0:
-                    mark = "Heart";
-                    break;
-                case 1:
-                    mark = "Diamond";
-                    break;
-                case 2:
-                    mark = "Club";
-                    break;
-                case 3:
-                    mark = "Spade";
-                    break;
-            }
-            s.sprite = Resources.Load<Sprite>(mark + (index % 13).ToString("00"));
-        }
-        else
-        {
-            s.sprite = Resources.Load<Sprite>("Joker_Color");
-        }*/
+        s.sprite = Resources.LoadAll<Sprite>("cards3")[index];
     }
-
 }

@@ -18,18 +18,24 @@ public class UserPUN : MonoBehaviour
     void Start()
     {
         //photonView = GetComponent<PhotonView>();
-        if(GameObject.Find("GameController") != null){
+        GameObject.Find("UIController").GetComponent<CardScript>().PlayerNumber = PlayerNumber;
+        GameObject.Find("UIController").GetComponent<UIScript>().PlayerNumber = PlayerNumber;
+        
+        if (GameObject.Find("GameController") != null)
+        {
             GameController = GameObject.Find("GameController");
-        }else{
-            GameController = GameObject.Find("GameController(Clone)");
+            game = GameController.GetComponent<Game>();
         }
-
-        game = GameController.GetComponent<Game>();
+        else
+        {
+            GameController = GameObject.Find("GameController(Clone)");
+            game = GameController.GetComponent<Game>();
+        }
 
         player = game.Player[PlayerNumber];
 
-        UIObject = (GameObject)Resources.Load("UIController");
-        Instantiate(UIObject, Vector3.zero, Quaternion.identity);
+        //UIObject = (GameObject)Resources.Load("UIController");
+        //Instantiate(UIObject, Vector3.zero, Quaternion.identity);
         //Enemy = game.Player[1];
 
     }
@@ -38,13 +44,25 @@ public class UserPUN : MonoBehaviour
     void Update()
     {
 
-        player = game.Player[PlayerNumber];
+        if (game == null)
+        {
+            if (GameObject.Find("GameController") != null)
+            {
+                GameController = GameObject.Find("GameController");
+                game = GameController.GetComponent<Game>();
+            }
+            else if (GameObject.Find("GameController(Clone)") != null)
+            {
+                GameController = GameObject.Find("GameController(Clone)");
+                game = GameController.GetComponent<Game>();
+            }
+        }
+        if(game != null)player = game.Player[PlayerNumber];
 
 
-        while (player.IsFirst || (player.HandCard.Count < 5 && player.Deck.Count > 0))
+        while (game != null &&  (player.HandCard.Count < 5 && player.Deck.Count > 0))
         {
             player.DrawCard();
-            player.IsFirst = false;
         }
         //if (photonView.IsMine && player.MyTurn && Input.GetMouseButtonDown(0)) Clicked();
         if (player.MyTurn && Input.GetMouseButtonDown(0)) Clicked();
@@ -63,39 +81,23 @@ public class UserPUN : MonoBehaviour
             if (hit.collider.gameObject != null && hit.collider.gameObject.CompareTag("HandCard"))
             {//カードをクリック
                 CardChoice(hit.collider.gameObject);
+            }else if (hit.collider.gameObject != null && hit.collider.gameObject.CompareTag("Field")) {
+                CardPlace();
             }
-        }
-        else
-        {
-            CardPlace();
+
         }
     }
 
     void CardChoice(GameObject ClickCard)
     {
 
-        Vector3 pos = ClickCard.GetComponent<Transform>().position;
-        pos = pos + new Vector3(0, 0, 0);
+
         //ClickCard.GetComponent<Transform>().position = pos;
         //Debug.Log(ClickCard.name.Remove(ClickCard.name.IndexOf("HandCard"),8));
         if (ClickCard.name.IndexOf("HandCard") >= 0)
         {
             int n = int.Parse(ClickCard.name.Remove(ClickCard.name.IndexOf("HandCard"), 8));
             player.HandCard[n].IsPrepare = !player.HandCard[n].IsPrepare;
-
-            for (int i = 0; i < player.HandCard.Count; i++)
-            {
-                GameObject card = GameObject.Find("HandCard" + i);
-                Transform cardTransform = card.GetComponent<Transform>();
-                if (player.HandCard[i].IsPrepare)
-                {
-                    cardTransform.position = new Vector3(i - 3, -1.5f, 0);
-                }
-                else
-                {
-                    cardTransform.position = new Vector3(i - 3, -2f, 0);
-                }
-            }
         }
     }
 
@@ -128,11 +130,16 @@ public class UserPUN : MonoBehaviour
         }*/
         if (p.Count > 0)
         {
+            GameController.GetComponent<PhotonView>().RequestOwnership();
             game.Player[PlayerNumber].CardRequest = new PlaceCard(p);
             game.Player[PlayerNumber].CardChanged = true;
             //game.GetComponent<PhotonView>().RequestOwnership();
             //game.CardChangeRequest(PlayerNumber,new PlaceCard(p));
-            //game.GetComponent<PhotonView>().RPC("CardChangeRequest", RpcTarget.All, PlayerNumber, new PlaceCard(p));
+            /*
+            for(int i = 0;i < index.Count; i++){
+                game.GetComponent<PhotonView>().RPC("CardChangeRequest", RpcTarget.All, PlayerNumber, index[i], i+1 == index.Count);
+            }*/
+            
         }
     }
 
