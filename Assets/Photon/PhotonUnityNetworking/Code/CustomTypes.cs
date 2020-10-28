@@ -11,9 +11,12 @@
 
 namespace Photon.Pun
 {
+    using System.Collections;
+    using System.Collections.Generic;
     using UnityEngine;
     using Photon.Realtime;
     using ExitGames.Client.Photon;
+    
 
 
     /// <summary>
@@ -29,6 +32,11 @@ namespace Photon.Pun
             PhotonPeer.RegisterType(typeof(Vector3), (byte) 'V', SerializeVector3, DeserializeVector3);
             PhotonPeer.RegisterType(typeof(Quaternion), (byte) 'Q', SerializeQuaternion, DeserializeQuaternion);
             PhotonPeer.RegisterType(typeof(Player), (byte) 'P', SerializePhotonPlayer, DeserializePhotonPlayer);
+
+            /*
+            PhotonPeer.RegisterType(typeof(Card), (byte)'C', SerializePhotonPlayer, DeserializePhotonPlayer);
+            PhotonPeer.RegisterType(typeof(PlaceCard), (byte)'O', SerializePhotonPlayer, DeserializePhotonPlayer);
+            PhotonPeer.RegisterType(typeof(GamePlayer), (byte)'G', SerializePhotonPlayer, DeserializePhotonPlayer);*/
         }
 
 

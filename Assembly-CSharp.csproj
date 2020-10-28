@@ -63,11 +63,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\CardScript.cs" />
-    <Compile Include="Assets\Game.cs" />
-    <Compile Include="Assets\MonsterScript.cs" />
-    <Compile Include="Assets\NPCScript.cs" />
-    <Compile Include="Assets\PUN2.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\EventSystemSpawner.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\OnStartDelete.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\Common\TextButtonTransition.cs" />
@@ -79,13 +74,19 @@
     <Compile Include="Assets\Photon\PhotonChat\Demos\DemoChat\IgnoreUiRaycastWhenInactive.cs" />
     <Compile Include="Assets\Photon\PhotonChat\Demos\DemoChat\NamePickGui.cs" />
     <Compile Include="Assets\Photon\PhotonRealtime\Demos\DemoLoadBalancing\ConnectAndJoinRandomLb.cs" />
-    <Compile Include="Assets\SimplePun.cs" />
-    <Compile Include="Assets\UIButton.cs" />
-    <Compile Include="Assets\UIScript.cs" />
-    <Compile Include="Assets\User.cs" />
-    <Compile Include="Assets\UserCardScript.cs" />
-    <Compile Include="Assets\UserName.cs" />
-    <Compile Include="Assets\UserPUN.cs" />
+    <Compile Include="Assets\Script\CardScript.cs" />
+    <Compile Include="Assets\Script\Game.cs" />
+    <Compile Include="Assets\Script\GamePlayerSerializer.cs" />
+    <Compile Include="Assets\Script\MonsterScript.cs" />
+    <Compile Include="Assets\Script\NPCScript.cs" />
+    <Compile Include="Assets\Script\PUN2.cs" />
+    <Compile Include="Assets\Script\SimplePun.cs" />
+    <Compile Include="Assets\Script\UIButton.cs" />
+    <Compile Include="Assets\Script\UIScript.cs" />
+    <Compile Include="Assets\Script\User.cs" />
+    <Compile Include="Assets\Script\UserCardScript.cs" />
+    <Compile Include="Assets\Script\UserName.cs" />
+    <Compile Include="Assets\Script\UserPUN.cs" />
     <None Include="Assets\Photon\PhotonLibs\netstandard2.0\Photon3Unity3D.xml" />
     <None Include="Assets\Photon\PhotonUnityNetworking\changelog.txt" />
     <None Include="Assets\Photon\PhotonLibs\changes-library.txt" />

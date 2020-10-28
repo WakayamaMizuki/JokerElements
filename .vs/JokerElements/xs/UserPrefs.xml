@@ -1,21 +1,21 @@
 ﻿<Properties StartupConfiguration="{B75B525F-D4B4-D9CA-EDFE-F58C2751A28C}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Game.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/UIScript.cs">
     <Files>
-      <File FileName="Assets/NPCScript.cs" Line="18" Column="52" />
-      <File FileName="Assets/Game.cs" Line="73" Column="1" />
-      <File FileName="Assets/UIScript.cs" />
-      <File FileName="Assets/UIButton.cs" />
-      <File FileName="Assets/UserPUN.cs" />
-      <File FileName="Assets/CardScript.cs" />
-      <File FileName="Assets/UserCardScript.cs" />
-      <File FileName="Assets/User.cs" Line="4" Column="35" />
-      <File FileName="Assets/UserName.cs" />
-      <File FileName="Assets/PUN2.cs" />
+      <File FileName="Assets/GamePlayerSerializer.cs" Line="54" Column="81" IsPinned="True" />
+      <File FileName="Assets/NPCScript.cs" Line="22" Column="9" />
+      <File FileName="Assets/Game.cs" Line="112" Column="10" />
+      <File FileName="Assets/UIScript.cs" Line="26" Column="1" />
+      <File FileName="Assets/UserPUN.cs" Line="21" Column="9" />
+      <File FileName="Assets/CardScript.cs" Line="182" Column="23" />
+      <File FileName="Assets/UserCardScript.cs" Line="141" Column="5" />
+      <File FileName="Assets/User.cs" Line="18" Column="28" />
+      <File FileName="Assets/PUN2.cs" Line="1" Column="1" />
+      <File FileName="Assets/UIButton.cs" Line="50" Column="9" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="6c7954d0-e8fd-42d0-ab92-00a06dcc84c3" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="57260444-545b-469c-8a0d-12dc0604f538" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
