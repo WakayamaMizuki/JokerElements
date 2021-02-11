@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//using System.Collections;
+//using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class CardScript : MonoBehaviour
 {
@@ -12,10 +11,12 @@ public class CardScript : MonoBehaviour
     public int PlayerNumber;
     private GamePlayer player;
     private GamePlayer enemy;
-    private bool first = true;
+    public bool IsStart;
     // Use this for initialization
     void Start()
     {
+        IsStart = false;
+        PlayerNumber = GamePlayerNumber.num;
         CardSprite = (GameObject)Resources.Load("Card");
         
         if(GameObject.Find("GameController") != null)
@@ -27,37 +28,21 @@ public class CardScript : MonoBehaviour
     // Update is called once per frameusing Photon.Pun;
     void Update()
     {
-        if (game == null)
-        {
+        player = game.Player[PlayerNumber];
+        enemy = game.Player[(PlayerNumber + 1) % 2];
 
-            if (GameObject.Find("GameController") != null)
-            {
-                game = GameObject.Find("GameController").GetComponent<Game>();
-            }
-        }
-        
 
-        if (game != null)
+        if (enemy == null) return;
+        if (enemy.CardSpriteChanged || player.CardSpriteChanged)
         {
-            player = game.Player[PlayerNumber];
-            enemy = game.Player[(PlayerNumber + 1) % 2];
+            SetDisCard();
+            SetPlaceCard();        
         }
-
-        if (enemy != null)
+        if(enemy.HandCard != null && player.HandCard != null && (!game.IsPhoton || IsStart || PlayerNumber == 1))
         {
-            if (enemy.CardSpriteChanged || player.CardSpriteChanged)
-            {
-                SetPlaceCard();
-                
-            }
-            if(enemy.HandCard != null && player.HandCard != null)
-            {
-                SetHandCard();
-                SetDisCard();
-                HandCardPrepare();
-            }
-            
-        }
+            SetHandCard();
+            HandCardPrepare();
+        }      
     }
 
     void SetPlaceCard()
@@ -72,11 +57,11 @@ public class CardScript : MonoBehaviour
                 {
                     GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i - 3, -1, 0), Quaternion.identity);
                     instance.name = "PlayerPlaceCard" + i;
-                    Texture(instance.GetComponent<SpriteRenderer>(), player.placeCard.cards[i].imageIndex);
+                    Texture(instance.GetComponent<SpriteRenderer>(), player.placeCard.cards[i].getImageIndex());
                 }
                 else
                 {
-                    Texture(GameObject.Find("PlayerPlaceCard" + i).GetComponent<SpriteRenderer>(), player.placeCard.cards[i].imageIndex);
+                    Texture(GameObject.Find("PlayerPlaceCard" + i).GetComponent<SpriteRenderer>(), player.placeCard.cards[i].getImageIndex());
                 }
             }
             n = player.placeCard.cards.Count;
@@ -108,11 +93,11 @@ public class CardScript : MonoBehaviour
                         instance.name = "EnemyPlaceCard" + i;
                     }
                     
-                    Texture(instance.GetComponent<SpriteRenderer>(), enemy.placeCard.cards[i].imageIndex);
+                    Texture(instance.GetComponent<SpriteRenderer>(), enemy.placeCard.cards[i].getImageIndex());
                 }
                 else
                 {
-                    Texture(GameObject.Find("EnemyPlaceCard" + i).GetComponent<SpriteRenderer>(), enemy.placeCard.cards[i].imageIndex);
+                    Texture(GameObject.Find("EnemyPlaceCard" + i).GetComponent<SpriteRenderer>(), enemy.placeCard.cards[i].getImageIndex());
                 }
             }
             n = enemy.placeCard.cards.Count;
@@ -153,11 +138,11 @@ public class CardScript : MonoBehaviour
                         instance.tag = "HandCard";
                     }
                     
-                    Texture(instance.GetComponent<SpriteRenderer>(), player.HandCard[i].imageIndex);
+                    Texture(instance.GetComponent<SpriteRenderer>(), player.HandCard[i].getImageIndex());
                 }
                 else
                 {
-                    Texture(card.GetComponent<SpriteRenderer>(), player.HandCard[i].imageIndex);
+                    Texture(card.GetComponent<SpriteRenderer>(), player.HandCard[i].getImageIndex());
                 }
             }
             else if (card != null)
@@ -176,11 +161,11 @@ public class CardScript : MonoBehaviour
                     GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(i-1, 3f, 0), Quaternion.identity);
                     instance.name = "EnemyHandCard" + i;
                     instance.tag = "EnemyHandCard";
-                    Texture(instance.GetComponent<SpriteRenderer>(), enemy.HandCard[i].imageIndex);
+                    //Texture(instance.GetComponent<SpriteRenderer>(), enemy.HandCard[i].getImageIndex());
                 }
                 else
                 {
-                    Texture(card.GetComponent<SpriteRenderer>(), enemy.HandCard[i].imageIndex);
+                    //Texture(card.GetComponent<SpriteRenderer>(), enemy.HandCard[i].getImageIndex());
                 }
             }
             else if (card != null)
@@ -211,6 +196,14 @@ public class CardScript : MonoBehaviour
 
     void SetDisCard()
     {
+        if(player.DisCard.Count == 0 && enemy.DisCard.Count == 0)
+        {
+            GameObject[] DisCards = GameObject.FindGameObjectsWithTag("DisCard");
+            for (int i = DisCards.Length - 1; i >= 0; i--)
+            {
+                Destroy(DisCards[i]);
+            }
+        }
         for(int i = 0;i < player.DisCard.Count; i++)
         {
             GameObject card = GameObject.Find("PlayerDisCard" + i);
@@ -219,7 +212,7 @@ public class CardScript : MonoBehaviour
                 GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(4.5f + i * 0.15f, -1f, 0), Quaternion.identity);
                 instance.name = "PlayerDisCard" + i;
                 instance.tag = "DisCard";
-                Texture(instance.GetComponent<SpriteRenderer>(), player.DisCard[i].imageIndex);
+                Texture(instance.GetComponent<SpriteRenderer>(), player.DisCard[i].getImageIndex());
             }
         }
         for (int i = 0; i < enemy.DisCard.Count; i++)
@@ -230,9 +223,11 @@ public class CardScript : MonoBehaviour
                 GameObject instance = (GameObject)Instantiate(CardSprite, new Vector3(4.5f + i * 0.15f, 1f, 0), Quaternion.identity);
                 instance.name = "EnemyDisCard" + i;
                 instance.tag = "DisCard";
-                Texture(instance.GetComponent<SpriteRenderer>(), enemy.DisCard[i].imageIndex);
+                Texture(instance.GetComponent<SpriteRenderer>(), enemy.DisCard[i].getImageIndex());
             }
         }
+
+
     }
 
     void HandCardPrepare()
@@ -241,7 +236,7 @@ public class CardScript : MonoBehaviour
         for (int i = 0; i < player.HandCard.Count; i++)
         {
             GameObject card = GameObject.Find("HandCard" + i);
-            if (player.HandCard[i].IsPrepare)
+            if (player.HandCard[i].getIsPrepare())
             {
                 card.GetComponent<Transform>().position = new Vector3(i - 3, -2.5f, 0);
             }
@@ -260,6 +255,7 @@ public class CardScript : MonoBehaviour
 
     public void Flash()
     {
+        //捨て札の破棄
         GameObject[] DisCards = GameObject.FindGameObjectsWithTag("DisCard");
         for(int i = DisCards.Length - 1;i >= 0; i--)
         {

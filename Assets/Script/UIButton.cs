@@ -1,12 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//using System.Collections;
+//using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+//using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 
 public class UIButton : MonoBehaviour {
 
+    private void Awake()
+    {
+        Screen.SetResolution(1880, 1080, false, 60);
+    }
     void Update()
     {
         if (Input.GetKey(KeyCode.Escape)) Quit();
@@ -24,6 +28,7 @@ public class UIButton : MonoBehaviour {
 
     public void GameNPC()
     {
+        GamePlayerNumber.SetNum(Random.Range(0, 2));
         SceneManager.LoadScene("GameNPC");
     }
 
@@ -34,10 +39,8 @@ public class UIButton : MonoBehaviour {
 
     public void GamePUN()
     {
-        //string name = GameObject.Find("name").GetComponent<Text>().text;
-        //GameObject.Find("UserNameObject").GetComponent<UserName>().NameSet(name);
-        //SceneManager.LoadScene("GamePUN");
-        SceneManager.LoadScene("MIJISSOU");
+        SceneManager.LoadScene("Lobby");
+        //SceneManager.LoadScene("MIJISSOU");
     }
 
     void Quit()
@@ -48,10 +51,5 @@ public class UIButton : MonoBehaviour {
 #elif UNITY_STANDALONE
       UnityEngine.Application.Quit();
 #endif
-    }
-
-    public void Room1()
-    {
-        SceneManager.LoadScene("Title");
     }
 }

@@ -1,7 +1,6 @@
-﻿using System.Collections;
+﻿//using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 
 
@@ -15,13 +14,12 @@ public class Game : MonoBehaviour
     public bool[] markRegulation = new bool[4];
     //数字縛り
     public int numberRegulation;
+    //革命中かどうか
+    private bool IsRevolution;
     private UserCardScript userCardScript;
-    List<Card> p = new List<Card>();
-
 
     // Use this for initialization
     void Start() {
-
         Player[0] = new GamePlayer();
         Player[1] = new GamePlayer();
         
@@ -29,11 +27,7 @@ public class Game : MonoBehaviour
         Player[1].MyTurn = false;
         Player[0].Enemy = Player[1];
         Player[1].Enemy = Player[0];
-        /*
-        Player[0].HandCard.Add(new Card(4, 0));
-        Player[0].HandCard.Add(new Card(4, 0));
-        Player[1].HandCard.Add(new Card(4, 0));
-        Player[1].HandCard.Add(new Card(4, 0));*/
+
         numberRegulation = -1;
         for(int i = 0;i < markRegulation.Length; i++)
         {
@@ -41,101 +35,86 @@ public class Game : MonoBehaviour
         }
         Player[0].MarkRegulation = markRegulation;
         Player[1].MarkRegulation = markRegulation;
+        if (IsPhoton) userCardScript = GameObject.Find("UserCard").GetComponent<UserCardScript>();
+        IsRevolution = false;
     }
 
-    // Update is called once per frame
+
     void Update() {
-        if (userCardScript == null)
+
+        for (int i = 0; i < 2; i++)
         {
-            
-            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i].GetComponent<PhotonView>().IsMine) userCardScript = players[i].GetComponent<UserCardScript>();
-            }
-        }
-        if (IsPhoton && userCardScript != null)
-        {
-            Player = userCardScript.Players;
-        }
-         //if (!IsPhoton) {
-        if (true){
-            if (Player[0].CardChanged)
+            if (Player[i].CardChanged)
             {
 
-                //if (IsPhoton)photonView.RequestOwnership();
-                Player[0].IsCardChangeRequest();
+                Player[i].IsCardChangeRequest();
 
                 Sort();
 
                 markRegulation = MarkRegulation();
-                Player[0].MarkRegulation = markRegulation;
-                Player[1].MarkRegulation = markRegulation;
+                Player[i].MarkRegulation = markRegulation;
+                Player[(i+1)%2].MarkRegulation = markRegulation;
                 numberRegulation = NumberRegulationFunction();
-                Player[0].NumberRegulation = numberRegulation;
-                Player[1].NumberRegulation = numberRegulation;
+                Player[i].NumberRegulation = numberRegulation;
+                Player[(i + 1) % 2].NumberRegulation = numberRegulation;
+
+                //IsRevolution = (Player[0].placeCard.cards.Count > 3 || Player[1].placeCard.cards.Count > 3);
+
                 if (IsPhoton && userCardScript != null)
                 {
                     userCardScript.SetPlayer(Player);
                 }
             }
-            if (Player[1].CardChanged)
+        }
+        if(Player[0].placeCard == null && Player[1].placeCard == null)
+        {
+            for (int i = 0; i < markRegulation.Length; i++)
             {
-                //if (IsPhoton) photonView.RequestOwnership();
-                Player[1].IsCardChangeRequest();
-
-                Sort();
-
-                markRegulation = MarkRegulation();
-                Player[0].MarkRegulation = markRegulation;
-                Player[1].MarkRegulation = markRegulation;
-                numberRegulation = NumberRegulationFunction();
-                Player[0].NumberRegulation = numberRegulation;
-                Player[1].NumberRegulation = numberRegulation;
-                if (IsPhoton && userCardScript != null)
-                {
-                    userCardScript.SetPlayer(Player);
-                }
+                markRegulation[i] = false;
             }
-            if(Player[0].placeCard == null && Player[1].placeCard == null)
-            {
-                for (int i = 0; i < markRegulation.Length; i++)
-                {
-                    markRegulation[i] = false;
-                }
-                Player[0].MarkRegulation = markRegulation;
-                Player[1].MarkRegulation = markRegulation;
-                numberRegulation = -1;
-                Player[0].NumberRegulation = -1;
-                Player[1].NumberRegulation = -1;
-            }
-        } 
+            Player[0].MarkRegulation = markRegulation;
+            Player[1].MarkRegulation = markRegulation;
+            numberRegulation = -1;
+            Player[0].NumberRegulation = -1;
+            Player[1].NumberRegulation = -1;
+        }
+    }
 
+    public void ReceivePlayer(GamePlayer[] player)
+    {
+        Player = player;
+        markRegulation = MarkRegulation();
+        Player[0].MarkRegulation = markRegulation;
+        Player[1].MarkRegulation = markRegulation;
+        numberRegulation = NumberRegulationFunction();
+        Player[0].NumberRegulation = numberRegulation;
+        Player[1].NumberRegulation = numberRegulation;
     }
 
 
-    public void CardChangeRequest(int PlayerNumber, int CardIndex, bool last){
-        Debug.Log("here");
-        p.Add(Player[PlayerNumber].HandCard[CardIndex]);
-        if (last)
+    public void CardChangeRequest(int PlayerNumber, PlaceCard p){
+        Player[PlayerNumber].CardRequest = p;
+        Player[PlayerNumber].CardChanged = true;
+    }
+
+    public void DrawCard(int PlayerNumber, int n)
+    {
+        for(int i = 0;i < n;i++)
         {
-            Debug.Log("");
-            Player[PlayerNumber].CardRequest = new PlaceCard(p);
-            Player[PlayerNumber].CardChanged = true;
-            p = new List<Card>();
+            Player[PlayerNumber].DrawCard();
         }
     }
 
     //数字縛り
     int NumberRegulationFunction()
     {
-        if (Player[0].placeCard == null || Player[1].placeCard == null)
+        if (Player[0].placeCard == null || Player[1].placeCard == null || Player[0].placeCard.cards.Count == 0 || Player[1].placeCard.cards.Count == 0)
         {
             return -1;
         }
-        else if (Mathf.Abs(Player[0].placeCard.cards[0].num - Player[1].placeCard.cards[0].num) == 1)
+        else if (Mathf.Abs(Player[0].placeCard.cards[0].getNum() - Player[1].placeCard.cards[0].getNum()) == 1)
         {
-            if (Player[0].placeCard.cards[0].num <= 15 && Player[1].placeCard.cards[0].num <= 15) return Mathf.Max(Player[0].placeCard.cards[0].num, Player[1].placeCard.cards[0].num);
+            if (Player[0].placeCard.cards[0].getNum() <= 15 && Player[1].placeCard.cards[0].getNum() <= 15) return Mathf.Max(Player[0].placeCard.cards[0].getNum(), Player[1].placeCard.cards[0].getNum());
             else return -1;
         }
         return -1;
@@ -161,6 +140,7 @@ public class Game : MonoBehaviour
 
     public void pass(int num){
         Player[num].pass();
+        if(IsPhoton)userCardScript.SetPlayer(Player);
     }
 
     
@@ -184,7 +164,7 @@ public class Game : MonoBehaviour
             Card card = hand[i];
             int n = tmp.Count;
             for (int j = 0; j < tmp.Count;j++){
-                if((tmp[j].num > card.num  || (tmp[j].num == card.num && tmp[j].mark >= card.mark ))&& n == tmp.Count){
+                if((tmp[j].getNum() > card.getNum() || (tmp[j].getNum() == card.getNum() && tmp[j].getMark() >= card.getMark() ))&& n == tmp.Count){
                     n = j;
                 }
             }
@@ -195,145 +175,8 @@ public class Game : MonoBehaviour
 }
 
 
-public class Card
-{
-    public int mark;
-    public string MarkString;//デバッグ用
-    public int num;  //強さ
-    public int imageNum; //カードの数字
 
-    public int imageIndex;
 
-    public bool IsPrepare;
-
-    public Card(int mark, int num){
-        this.mark = mark;
-        this.imageNum = num;
-        IsPrepare = false;
-        if (mark != 4) imageIndex = mark * 15 + imageNum - 1;
-        else imageIndex = 13;
-        if (num >=3){
-            this.num = num;
-        }else{
-            if(mark != 4){
-                this.num = num + 13;
-            }else{
-                this.num = 16;
-            }
-        }
-        ChangeMarkString();
-    }
-
-    private void ChangeMarkString(){
-        switch(this.mark){
-            case 0:
-                this.MarkString = "スペード";
-                break;
-            case 1:
-                this.MarkString = "クラブ";
-                break;
-            case 2:
-                this.MarkString = "ハート";
-                break;
-            case 3:
-                this.MarkString = "ダイヤ";
-                break;
-            case 4:
-                this.MarkString = "ジョーカー";
-                break;
-        }
-    }
-}
-
-public class PlaceCard
-{
-    public int cardNum;
-    public List<Card> cards;
-    public bool stair; //階段か
-    public bool multi; //数字が同じカードが複数か
-    public int CountJoker;
-    public int count7;
-    public int count8;
-    public int count10;
-    public bool[] IsMark = new bool[4];
-
-    
-
-    public PlaceCard(List<Card> cards)
-    {
-        this.cards = cards;
-        cardNum = cards.Count;
-        count7 = FuncCountImageNum(7);
-        count8 = FuncCountImageNum(8);
-        count10 = FuncCountImageNum(10);
-        CountJoker = FuncCountJoker();
-        multi = CheckMulti();
-        stair = CheckStairs();
-        CheckMark();
-    }
-
-    private int FuncCountImageNum(int imageNum)
-    {
-        int count = 0;
-        for (int i = 0; i < this.cards.Count; i++)
-        {
-            if (this.cards[i].imageNum == imageNum)
-            {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private bool CheckMulti()
-    {
-        if (cards.Count <= 1) return false;
-        int num = cards[0].num;
-        for(int i = 1;i < cards.Count; i++)
-        {
-            if (cards[i].num != num && cards[i].mark != 4) return false;
-        }
-        return true;
-    }
-
-    private int FuncCountJoker()
-    {
-        int sum = 0;
-        for (int i = 0; i < cards.Count; i++)
-        {
-            if (cards[i].mark == 4) sum++;
-        }
-        return sum;
-    }
-
-    private bool CheckStairs()
-    {
-        for (int i = 0; i < cards.Count - 1; i++)
-        {
-            if (cards[i].num == cards[i+1].num && cards[i].mark == cards[i].mark)
-            {
-
-            }
-            else
-            {
-
-            }
-        }
-        return false;
-    }
-
-    private void CheckMark()
-    {
-        for (int i = 0; i < IsMark.Length; i++)
-        {
-            IsMark[i] = false;
-        }
-        for (int i = 0; i < cards.Count; i++)
-        {
-            if(cards[i].mark != 4)IsMark[cards[i].mark] = true;
-        }
-    }
-}
 
 public class GamePlayer{
     public PlaceCard placeCard; //場に出ているカード
@@ -349,18 +192,17 @@ public class GamePlayer{
     public int NumberRegulation;
     public int DeckCount;
     public bool[] MarkRegulation;
-    public string HandCardName;
     public bool Is7 = false;
     public bool Is10 = false;
-    //public Vector3 HandCardPos;
 
     public GamePlayer(){
+        Enemy = null;
+        MyTurn = false;
         Deck = MakeDeck();
         CardChanged = false;
         CardSpriteChanged = true;
         NumberRegulation = -1;
     }
-
 
     public void DrawCard()
     {
@@ -370,10 +212,11 @@ public class GamePlayer{
             int i;
             for (i = 0; i < HandCard.Count; i++)
             {
-                if (HandCard[i].num > Deck[index].num) break;
+                if (HandCard[i].getNum() > Deck[index].getNum()) break;
             }
             HandCard.Insert(i, Deck[index]);
             Deck.RemoveAt(index);
+            DeckCount = Deck.Count;
         }
     }
 
@@ -397,133 +240,128 @@ public class GamePlayer{
 
 
     public void IsCardChangeRequest(){
-        
-        if (MyTurn && !Is7 && !Is10)
+
+        if (!MyTurn || CardRequest == null || CardRequest.cards == null)
         {
-            bool check;
-            if(CardRequest != null && CardRequest.cards != null){
-                check = CardPlaceCheck(CardRequest);
-            }else{
-                check = false;
-            }
-
-            if (check)
-            {
-                if (placeCard != null)
-                {
-                    for (int i = 0; i < placeCard.cards.Count; i++)
-                    {
-                        DisCard.Add(placeCard.cards[i]);
-                    }
-                }
-                
-                placeCard = CardRequest;
-
-                Is7 = (placeCard.count7 > 0);
-
-                Is10 = (placeCard.count10 > 0);
-
-                CardRequest = null;
-                CardChanged = true;
-                CardSpriteChanged = true;
-                for (int i = placeCard.cards.Count - 1; i >= 0; i--)
-                {
-                    HandCard.RemoveAt(HandCard.IndexOf(placeCard.cards[i]));
-                }
-
-                //スペ3返し
-                if (Enemy.placeCard != null && placeCard != null && Enemy.placeCard.cardNum == 1 && Enemy.placeCard.cards != null && Enemy.placeCard.cards[0] != null && Enemy.placeCard.cards[0].mark == 4 && placeCard.cards != null && placeCard.cards != null && placeCard.cards[0].mark == 0 && placeCard.cards[0].imageNum == 3)
-                {
-                    placeCard.cards[0].num = 17;
-                }
-
-                //8切り
-                Func8();
-
-                if (!Is7 && !Is10)
-                {
-                    MyTurn = false;
-                    Enemy.MyTurn = true;
-                }
-                
-                if (placeCard == null)
-                {
-                    pass();
-                }
-            }
-            else
-            {
-                CardRequest = null;
-                CardChanged = false;
-                CardSpriteChanged = false;
-                for (int i = 0; i < HandCard.Count; i++)
-                {
-                    HandCard[i].IsPrepare = false;
-                }
-            }
+            CardRequest = null;
+            CardChanged = false;
+            return;
         }
-        else if(MyTurn && Is7 && CardRequest != null && CardRequest.cards != null)
+        if (Is7)
         {
             //7渡し
             Func7();
+            return;
         }
-        else if (MyTurn && Is10 && CardRequest != null && CardRequest.cards != null)
+        if (Is10)
         {
             //10捨て
             Func10();
+            return;
         }
+
+        //7渡し,10捨て以外の場合
+        bool check = CardPlaceCheck(CardRequest);
+        if (!check)
+        {
+            CardRequest = null;
+            CardChanged = false;
+            CardSpriteChanged = false;
+            for (int i = 0; i < HandCard.Count; i++)
+            {
+                HandCard[i].setIsPrepare(false);
+            }
+            return;
+        }
+
+        //チェックが通った
+        if (placeCard != null)
+        {
+            for (int i = 0; i < placeCard.cards.Count; i++)
+            {
+                DisCard.Add(placeCard.cards[i]);
+            }
+        }
+                
+        placeCard = CardRequest;
+
+        Is7 = (placeCard.count7 > 0);
+        Is10 = (placeCard.count10 > 0);
+
         CardRequest = null;
-        CardChanged = false;
+        CardChanged = true;
+        CardSpriteChanged = true;
+        for (int i = placeCard.cards.Count - 1; i >= 0; i--)
+        {
+            HandCard.RemoveAt(HandCard.IndexOf(placeCard.cards[i]));
+        }
+
+        //スペ3返し
+        if (Enemy.placeCard != null && placeCard != null && Enemy.placeCard.cardNum == 1 && Enemy.placeCard.cards != null && Enemy.placeCard.cards[0] != null && Enemy.placeCard.cards[0].getMark() == 4 && placeCard.cards != null && placeCard.cards != null && placeCard.cards[0].getMark() == 0 && placeCard.cards[0].getImageNum() == 3)
+        {
+            placeCard.cards[0].setNum(17);
+        }
+
+        //8切り
+        Func8();
+
+        if (!Is7 && !Is10)
+        {
+            //7,10が含まれるならターンを継続
+            MyTurn = false;
+            Enemy.MyTurn = true;
+        }
+                
+        if (placeCard == null)
+        {
+            pass();
+        } 
     }
 
     public void pass(){
-        if (MyTurn)
-        {
-            if (!Is7 && !Is10) {
-                for (int i = 0; i < HandCard.Count; i++)
-                {
-                    HandCard[i].IsPrepare = false;
-                }
-                CardSpriteChanged = true;
-                Enemy.CardSpriteChanged = true;
-                Is7 = false;
-                Is10 = false;
-                placeCard = null;
-                Enemy.placeCard = null;
-                NumberRegulation = -1;
-                MyTurn = false;
-                Enemy.MyTurn = true;
-                DisCard = new List<Card>();
-                Enemy.DisCard = new List<Card>();
-                GameObject.Find("UIController").GetComponent<CardScript>().Flash();
-            }
-            else if(Is7)
+        if (!MyTurn) return;
+        if (!Is7 && !Is10) {
+            for (int i = 0; i < HandCard.Count; i++)
             {
-                for (int i = 0; i < HandCard.Count; i++)
-                {
-                    HandCard[i].IsPrepare = false;
-                }
-                Is7 = false;
-                MyTurn = false;
-                Enemy.MyTurn = true;
+                HandCard[i].setIsPrepare(false);
             }
-            else
-            {
-                for (int i = 0; i < HandCard.Count; i++)
-                {
-                    HandCard[i].IsPrepare = false;
-                }
-                Is10 = false;
-                MyTurn = false;
-                Enemy.MyTurn = true;
-            }
+            CardSpriteChanged = true;
+            Enemy.CardSpriteChanged = true;
+            Is7 = false;
+            Is10 = false;
+            placeCard = null;
+            Enemy.placeCard = null;
+            NumberRegulation = -1;
+            MyTurn = false;
+            Enemy.MyTurn = true;
+            DisCard = new List<Card>();
+            Enemy.DisCard = new List<Card>();
+            GameObject.Find("UIController").GetComponent<CardScript>().Flash();
         }
-           
+        else if(Is7)
+        {
+            for (int i = 0; i < HandCard.Count; i++)
+            {
+                HandCard[i].setIsPrepare(false);
+            }
+            Is7 = false;
+            MyTurn = false;
+            Enemy.MyTurn = true;
+        }
+        else
+        {
+            for (int i = 0; i < HandCard.Count; i++)
+            {
+                HandCard[i].setIsPrepare(false);
+            }
+            Is10 = false;
+            MyTurn = false;
+            Enemy.MyTurn = true;
+        }    
     }
 
     bool CardPlaceCheck(PlaceCard p)//カードが受理されるか
     {
-
         //枚数が違う
         if (Enemy.placeCard != null && Enemy.placeCard.cards.Count != p.cards.Count) return false;
 
@@ -546,33 +384,33 @@ public class GamePlayer{
         }
             
 
-        if (NumberRegulation != -1 && NumberRegulation + 1 != p.cards[0].num && p.cards[0].num != 16 && (p.cards[0].mark != 3 || p.cards[0].num != 3))
+        if (NumberRegulation != -1 && NumberRegulation + 1 != p.cards[0].getNum() && p.cards[0].getNum() != 16 && (p.cards[0].getMark() != 0 || p.cards[0].getImageNum() != 3))
         {
             //数字縛り
             return false;
         }
         if (p.cards.Count >= 2)//複数
         {
-            int n = p.cards[0].num;
+            int n = p.cards[0].getNum();
             for (int i = 1; i < p.cards.Count; i++)
             {
                 //数がそろっていない
-                if (p.cards[i].num != n && p.cards[i].num != 16) return false;
+                if (p.cards[i].getNum() != n && p.cards[i].getNum() != 16) return false;
             }
             
             //数が敵のカードよりも小さい
-            if (Enemy.placeCard != null && p.cards[0].num <= Enemy.placeCard.cards[0].num) return false;
+            if (Enemy.placeCard != null && p.cards[0].getNum() <= Enemy.placeCard.cards[0].getNum()) return false;
         }else//単体
         {
             //スペ3
-            if (Enemy.placeCard != null && Enemy.placeCard.cardNum == 1 && Enemy.placeCard.cards[0].mark == 4 && p.cards[0].mark == 0 && p.cards[0].imageNum == 3)
+            if (Enemy.placeCard != null && Enemy.placeCard.cardNum == 1 && Enemy.placeCard.cards[0].getMark() == 4 && p.cards[0].getMark() == 0 && p.cards[0].getImageNum() == 3)
             {
                 return true;
             }
             //数が敵のカードよりも小さい
-            if (Enemy.placeCard != null && p.cards[0].num <= Enemy.placeCard.cards[0].num ) return false;
+            if (Enemy.placeCard != null && p.cards[0].getNum() <= Enemy.placeCard.cards[0].getNum()) return false;
             //ジョーカーに対してジョーカーを出そうとする
-            if (Enemy.placeCard != null && Enemy.placeCard.cards[0].num  == 16 && p.cards[0].num == 16) return false;
+            if (Enemy.placeCard != null && Enemy.placeCard.cards[0].getNum() == 16 && p.cards[0].getNum() == 16) return false;
         }
         return true;
     }
@@ -586,9 +424,9 @@ public class GamePlayer{
         if (placeCard == null) return;
         for (int i = 0; i < placeCard.cards.Count; i++)
         {
-            if (placeCard.cards[i].imageNum == 8)
+            if (placeCard.cards[i].getImageNum() == 8)
             {
-                placeCard.cards[i].num = 17;
+                placeCard.cards[i].setNum(17);
             }
         }
         return;
@@ -620,7 +458,7 @@ public class GamePlayer{
             CardSpriteChanged = false;
             for (int i = 0; i < HandCard.Count; i++)
             {
-                HandCard[i].IsPrepare = false;
+                HandCard[i].setIsPrepare(false);
             }
         }
     }
@@ -649,7 +487,7 @@ public class GamePlayer{
             CardSpriteChanged = false;
             for (int i = 0; i < HandCard.Count; i++)
             {
-                HandCard[i].IsPrepare = false;
+                HandCard[i].setIsPrepare(false);
             }
         }
     }

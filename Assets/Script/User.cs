@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿//using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,32 +8,34 @@ public class User : MonoBehaviour {
     GameObject GameController;
     Game game;
     public int PlayerNumber;
+    UserCardScript userCardScript;
     GamePlayer player;
-    GamePlayer enemy;
     //Player Enemy;
 	// Use this for initialization
 	void Start () {
-        PlayerNumber = Random.Range(0, 2);
-        GameObject.Find("UIController").GetComponent<UIScript>().PlayerNumber = PlayerNumber;
-        GameObject.Find("UIController").GetComponent<CardScript>().PlayerNumber = PlayerNumber;
-        GameObject.Find("NPCController").GetComponent<NPCScript>().PlayerNumber = PlayerNumber + 1;
-
+        PlayerNumber = GamePlayerNumber.num;
         GameController = GameObject.Find("GameController");
         game = GameController.GetComponent<Game>();
+        if (game.IsPhoton)userCardScript = GameObject.Find("UserCard").GetComponent<UserCardScript>();
+        
         player = game.Player[PlayerNumber];
-        enemy = game.Player[(PlayerNumber + 1) % 2];
+
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if(player == null) player = game.Player[PlayerNumber];
-        if(enemy == null) enemy = game.Player[(PlayerNumber + 1) % 2];
-
-        while (player != null && player.HandCard.Count < 5 && player.Deck.Count > 0)
+        if (game.IsPhoton)
         {
-            player.DrawCard();
+            player = game.Player[PlayerNumber];
         }
-        if (player != null && player.MyTurn && Input.GetMouseButtonDown(0)) Clicked();
+
+        if (game.Player[PlayerNumber] != null && game.Player[PlayerNumber].HandCard.Count < 5 && game.Player[PlayerNumber].Deck.Count > 0)
+        {
+            game.DrawCard(PlayerNumber, 5 - game.Player[PlayerNumber].HandCard.Count);
+
+            if (game.IsPhoton) userCardScript.SetPlayer(game.Player);
+        }
+        if (game.Player[PlayerNumber].MyTurn && Input.GetMouseButtonDown(0)) Clicked();
 
         CheckWin();
     }
@@ -65,7 +67,7 @@ public class User : MonoBehaviour {
         if(ClickCard.name.IndexOf("HandCard") >= 0)
         {
             int n = int.Parse(ClickCard.name.Remove(ClickCard.name.IndexOf("HandCard"), 8));
-            player.HandCard[n].IsPrepare = !player.HandCard[n].IsPrepare;
+            game.Player[PlayerNumber].HandCard[n].setIsPrepare(!game.Player[PlayerNumber].HandCard[n].getIsPrepare());
         }
     }
 
@@ -73,30 +75,28 @@ public class User : MonoBehaviour {
     {
         //カードを提出
         List<Card> p = new List<Card>();
-        for (int i = 0; i < player.HandCard.Count; i++)
+        for (int i = 0; i < game.Player[PlayerNumber].HandCard.Count; i++)
         {
-            if (player.HandCard[i].IsPrepare)
+            if (game.Player[PlayerNumber].HandCard[i].getIsPrepare())
             {
-                p.Add(player.HandCard[i]);
+                p.Add(game.Player[PlayerNumber].HandCard[i]);
             }
         }
         if (p.Count > 0)
         {
-            player.CardRequest = new PlaceCard(p);
-            player.CardChanged = true;
-
+            game.CardChangeRequest(PlayerNumber, new PlaceCard(p));
         }
     }
 
     void CheckWin()
     {
         //勝ちかどうか
-        if (player != null && player.Deck.Count <= 0 && player.HandCard.Count <= 0)
+        if (game.Player[PlayerNumber] != null && game.Player[PlayerNumber].Deck.Count <= 0 && game.Player[PlayerNumber].HandCard.Count <= 0)
         {
             SceneManager.LoadScene("Win");
         }
 
-        if (enemy != null && enemy.Deck.Count <= 0 && enemy.HandCard.Count <= 0)
+        if (game.Player[(PlayerNumber + 1) % 2] != null && game.Player[(PlayerNumber + 1) % 2].Deck.Count <= 0 && game.Player[(PlayerNumber + 1) % 2].HandCard.Count <= 0)
         {
             SceneManager.LoadScene("Lose");
         }

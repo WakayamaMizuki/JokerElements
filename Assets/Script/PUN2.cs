@@ -1,26 +1,27 @@
 ﻿using UnityEngine;
-using System.Collections;
+//using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 using Photon.Realtime;
 using Photon.Pun;
+using UnityEngine.SceneManagement;
 
 public class PUN2 : MonoBehaviourPunCallbacks
 {
     public byte maxPlayers = 2;
+    private bool IsLobby;
+    List<RoomInfo> roomDispList = new List<RoomInfo>();
     [SerializeField] Text connectionText;
     [SerializeField] Transform[] spawnPoints;
 
     void Start()
     {
+        PhotonNetwork.IsMessageQueueRunning = true;
+        IsLobby = false;
         PhotonNetwork.ConnectUsingSettings();
     }
 
-    void Update()
-    {
-        //connectionText.text = PhotonNetwork.connectionStateDetailed.ToString();
-    }
+    #region Photon Callbacks
 
     void OnGUI()
     {
@@ -28,57 +29,63 @@ public class PUN2 : MonoBehaviourPunCallbacks
         GUILayout.Label(PhotonNetwork.NetworkClientState.ToString());
     }
 
-
-    //ルームに入室前に呼び出される
     public override void OnConnectedToMaster()
     {
-        ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable();
-        hash.Add("rnd", 0);
-        hash.Add("Player0",null);
-        hash.Add("Player1", null);
-        //hash.Add("IsChanged", false);
+        JoinLobby();
+    }
+
+    private void JoinLobby()
+    {
+        if (PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.JoinLobby();
+        }
+    }
+
+    public override void OnJoinedLobby()
+    {
+        IsLobby = true;
+    }
+
+    public void JoinRoom(int roomNumber)
+    {
+        if (!IsLobby) return;
+       
+        string name = GameObject.Find("name").GetComponent<Text>().text;
+        UserName.NameSet(name);
+
+        ExitGames.Client.Photon.Hashtable customProp = new ExitGames.Client.Photon.Hashtable();
+        customProp.Add("userName", name); //ユーザ名
+        PhotonNetwork.SetPlayerCustomProperties(customProp);
+
         // "room"という名前のルームに参加する（ルームが無ければ作成してから参加する）
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.MaxPlayers = maxPlayers;
-        roomOptions.CustomRoomProperties = hash;
-        PhotonNetwork.JoinOrCreateRoom("JokerElementsRoom", roomOptions, TypedLobby.Default);
+        roomOptions.IsOpen = true;
+        roomOptions.IsVisible = true;
+            
+        PhotonNetwork.JoinOrCreateRoom("Room" + roomNumber, roomOptions, TypedLobby.Default);
     }
 
     //ルームに入室後に呼び出される
     public override void OnJoinedRoom()
     {
-        /*
-        int index = 0;
-        if (PhotonNetwork.PlayerList.Length == 1)//一人目の場合
-        {
-            index = 0;
-        }
-        else if (PhotonNetwork.PlayerList.Length == 2)//プレイヤー2の場合
-        {
-            index = 1;
-        }*/
-        //GameObject player = (GameObject)Instantiate((GameObject)Resources.Load("UserController"), Vector3.zero, Quaternion.identity);
-        
-        GameObject UserCard = (GameObject)PhotonNetwork.Instantiate("UserCard", Vector3.zero, Quaternion.identity, 0);
-        UserCard.GetComponent<UserCardScript>().PlayerNumber = PhotonNetwork.PlayerList.Length - 1;
-        GameObject.Find("UserController").GetComponent<UserPUN>().PlayerNumber = PhotonNetwork.PlayerList.Length - 1;
-        GameObject.Find("UIController").GetComponent<CardScript>().PlayerNumber = PhotonNetwork.PlayerList.Length - 1;
-        GameObject.Find("UIController").GetComponent<UIScript>().PlayerNumber = PhotonNetwork.PlayerList.Length - 1;
-        //UserCard.name = "UserController";
+        GamePlayerNumber.SetNum(PhotonNetwork.PlayerList.Length - 1);
 
-        //Instantiate(UIObject, Vector3.zero, Quaternion.identity);
-        //自分だけが操作できるようにスクリプトを有効にする
-        //MonsterScript monsterScript = monster.GetComponent<MonsterScript>();
-        //monsterScript.enabled = true;
+        PhotonNetwork.IsMessageQueueRunning = false;
+        IsLobby = false;
+        SceneManager.LoadScene("GamePUN");
+
     }
 
-    #region Photon Callbacks
+    
 
 
     public override void OnPlayerEnteredRoom(Player other)
     {
         Debug.LogFormat("OnPlayerEnteredRoom() {0}", other.NickName); // not seen if you're the player connecting
 
+        if (PhotonNetwork.PlayerList.Length >= 2) GameObject.Find("UIController").GetComponent<CardScript>().IsStart = true;
 
         if (PhotonNetwork.IsMasterClient)
         {
@@ -98,10 +105,52 @@ public class PUN2 : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             Debug.LogFormat("OnPlayerLeftRoom IsMasterClient {0}", PhotonNetwork.IsMasterClient); // called before OnPlayerLeftRoom
-
-
-            //LoadArena();
         }
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        base.OnJoinRoomFailed(returnCode, message);
+    }
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        base.OnRoomListUpdate(roomList);
+        // ルーム一覧更新
+        foreach (var info in roomList)
+        {
+            if (!info.RemovedFromList)
+            {
+                // 更新データが削除でない場合
+                roomDispList.Add(info);
+            }
+            else
+            {
+                // 更新データが削除の場合
+                roomDispList.Remove(info);
+            }
+        }
+        if (!IsLobby) return;
+        for (int i = 1; i <= 5; i++)
+        {
+            int count = 0;
+
+            for (int j = 0; j < roomDispList.Count; j++)
+            {
+                if (roomDispList[j].Name.Equals("Room" + i)) count = roomDispList[j].PlayerCount;
+            }
+            GameObject ButtonText = GameObject.Find("Room" + i + "Text");
+            if (ButtonText != null)
+            {
+                ButtonText.GetComponent<Text>().text = "Room" + i + "\n" + count + "/2";
+            }
+        }
+    }
+
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        base.OnDisconnected(cause);
+        IsLobby = false;
     }
 
 

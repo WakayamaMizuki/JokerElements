@@ -1,21 +1,22 @@
 ﻿<Properties StartupConfiguration="{B75B525F-D4B4-D9CA-EDFE-F58C2751A28C}|">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/UIScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Script/UserCardScript.cs">
     <Files>
-      <File FileName="Assets/GamePlayerSerializer.cs" Line="54" Column="81" IsPinned="True" />
-      <File FileName="Assets/NPCScript.cs" Line="22" Column="9" />
-      <File FileName="Assets/Game.cs" Line="112" Column="10" />
-      <File FileName="Assets/UIScript.cs" Line="26" Column="1" />
-      <File FileName="Assets/UserPUN.cs" Line="21" Column="9" />
-      <File FileName="Assets/CardScript.cs" Line="182" Column="23" />
-      <File FileName="Assets/UserCardScript.cs" Line="141" Column="5" />
-      <File FileName="Assets/User.cs" Line="18" Column="28" />
-      <File FileName="Assets/PUN2.cs" Line="1" Column="1" />
-      <File FileName="Assets/UIButton.cs" Line="50" Column="9" />
+      <File FileName="Assets/Script/Game.cs" Line="17" Column="14" />
+      <File FileName="Assets/Script/PUN2.cs" Line="1" Column="1" />
+      <File FileName="Assets/Script/UIScript.cs" />
+      <File FileName="Assets/Script/User.cs" />
+      <File FileName="Assets/Script/UIButton.cs" />
+      <File FileName="Assets/Script/UserCardScript.cs" Line="11" Column="29" />
+      <File FileName="Assets/Script/CardScript.cs" Line="164" Column="23" />
+      <File FileName="Assets/Script/GamePlayerSerializer.cs" Line="1" Column="1" />
+      <File FileName="Assets/Script/NPCScript.cs" Line="75" Column="19" />
+      <File FileName="Assets/Script/Card.cs" />
+      <File FileName="Assets/Script/PlaceCard.cs" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="57260444-545b-469c-8a0d-12dc0604f538" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="c3adec11-5429-46b5-8cee-2b14e75d3047" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

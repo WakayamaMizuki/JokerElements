@@ -1,9 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//using System.Collections;
+//using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using Photon.Pun;
+//using UnityEngine.SceneManagement;
+//using Photon.Pun;
 
 public class UIScript : MonoBehaviour {
     private Text cardText;
@@ -21,7 +21,6 @@ public class UIScript : MonoBehaviour {
     private GamePlayer player;
     private GamePlayer enemy;
 
-    private GameObject GameController;
     private GameObject[] mark = new GameObject[4];
     private GameObject Turn;
     private Transform TurnTransform;
@@ -29,40 +28,23 @@ public class UIScript : MonoBehaviour {
     private UserCardScript userCardScript;
     // Use this for initialization
     void Start () {
+        PlayerNumber = GamePlayerNumber.num;
         cardText = GameObject.Find("MyCardNum").GetComponent<Text>();
         EnemycardText = GameObject.Find("EnemyCardNum").GetComponent<Text>();
 
         text3 = GameObject.Find("Text3").GetComponent<Text>();
         text4 = GameObject.Find("Text4").GetComponent<Text>();
         Status = GameObject.Find("Status").GetComponent<Text>();
-        if(GameObject.Find("Name") != null){
+
+        if(GameObject.Find("UserCard") != null)userCardScript = GameObject.Find("UserCard").GetComponent<UserCardScript>();
+        if(GameObject.Find("Name") != null && userCardScript != null){
             Name = GameObject.Find("Name").GetComponent<Text>();
-            Name.text = "名前: " + UserName.Name;
+            Name.text = "名前: " + userCardScript.Name[(PlayerNumber + 1) % 2];
         }
         
-
-        if (GameObject.Find("GameController") != null)
-        {
-            GameController = GameObject.Find("GameController");
-            game = GameController.GetComponent<Game>();
-        }
-        else if (GameObject.Find("GameController(Clone)") != null)
-        {
-            GameController = GameObject.Find("GameController(Clone)");
-            game = GameController.GetComponent<Game>();
-        }
+        game = GameObject.Find("GameController").GetComponent<Game>();
         Turn = GameObject.Find("Turn");
         TurnTransform = Turn.GetComponent<Transform>();
-        
-        /*
-        if (GameObject.Find("UserController").GetComponent<UserPUN>() != null)
-        {
-            PlayerNumber = GameObject.Find("UserController").GetComponent<UserPUN>().PlayerNumber;
-        }
-        else
-        {
-            PlayerNumber = GameObject.Find("UserController").GetComponent<User>().PlayerNumber;
-        }*/
 
         if(game != null)
         {
@@ -92,24 +74,10 @@ public class UIScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (userCardScript == null)
-        {
-            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-            for (int i = 0; i < players.Length; i++)
-            {
-                if (players[i].GetComponent<PhotonView>().IsMine) userCardScript = players[i].GetComponent<UserCardScript>();
-            }
-        }
 
-        if (game == null && GameObject.Find("GameController") != null)
+        if (Name != null && userCardScript != null)
         {
-            GameController = GameObject.Find("GameController");
-            game = GameObject.Find("GameController").GetComponent<Game>();
-        }
-        else if (GameObject.Find("GameController(Clone)") != null)
-        {
-            GameController = GameObject.Find("GameController(Clone)");
-            game = GameObject.Find("GameController(Clone)").GetComponent<Game>();
+            Name.text = "名前: " + userCardScript.Name[(PlayerNumber + 1) % 2];
         }
 
         if (PlayerNumber == 0)
@@ -120,14 +88,13 @@ public class UIScript : MonoBehaviour {
         {
             text4.text = "後攻";
         }
-        if (game != null)
-        {
-            player = game.Player[PlayerNumber];
-            enemy = game.Player[(PlayerNumber + 1) % 2];
-        }
+
+        player = game.Player[PlayerNumber];
+        enemy = game.Player[(PlayerNumber + 1) % 2];
+
         if (enemy != null){
             cardText.text = "残り: " + player.Deck.Count;
-            EnemycardText.text = "残り: " + enemy.Deck.Count;
+            EnemycardText.text = "残り: " + enemy.DeckCount;
 
             if (game.numberRegulation != -1)
             {
@@ -145,6 +112,19 @@ public class UIScript : MonoBehaviour {
             mark[i].SetActive(markRegulation[i]);
         }
 
+        TurnMove();
+
+        if (player != null && enemy != null) ChangeStatus();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            QuitApplication();
+        }
+    }
+
+    private void TurnMove()
+    {
+        //ターンの三角形が動く
         if (player.MyTurn)
         {
             TurnTransform.position = new Vector3(-4, -3, 0);
@@ -153,26 +133,12 @@ public class UIScript : MonoBehaviour {
         {
             TurnTransform.position = new Vector3(-4, 3, 0);
         }
-
-
-        if (player != null && enemy != null) ChangeStatus();
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            //QuitApplication();
-        }
-
-        
-
-        if (Input.GetKey(KeyCode.Escape)) Quit();
     }
 
     public void passClicked()
     {
         if (enemy != null){
-            
             game.pass(PlayerNumber);
-            //game.GetComponent<PhotonView>().RPC("pass", RpcTarget.All);
         }
     }
 
@@ -209,14 +175,5 @@ public class UIScript : MonoBehaviour {
         }
     }
 
-
-    void Quit()
-    {
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #elif UNITY_STANDALONE
-            UnityEngine.Application.Quit();
-        #endif
-    }
 
 }

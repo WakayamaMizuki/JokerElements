@@ -1,145 +1,122 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿//using System.Collections;
+//using System.Collections.Generic;
 using UnityEngine;
-using Hashtable = ExitGames.Client.Photon.Hashtable;
-
 using Photon.Pun;
 //using Photon.Realtime;
 
-public class UserCardScript : MonoBehaviourPun, IPunObservable/*Callbacks*/
+public class UserCardScript : MonoBehaviourPunCallbacks
 {
-
+	public string[] Name = new string[2];
 	public GamePlayer[] Players = new GamePlayer[2];
-	private GameObject enemyCard;
-    private GamePlayer player;
-	private GamePlayer enemy;
     public int PlayerNumber;
-	public int rnd;
-	public bool IsChanged;
-	public bool IsFirst = true;
+	public bool IsFirst;
+	bool First1;
 	public bool MyTurn;
-	private UserCardScript enemyCardScript;
+	private Game game;
 
 	void Awake()
 	{
-
 		GamePlayerSerializer.Register();
 	}
 
 
 	// Use this for initialization
 	void Start () {
-		//var customProperties = photonView.Owner.CustomProperties;
-		Players = GameObject.Find("GameController").GetComponent<Game>().Player;
-		player = Players[PlayerNumber];
-		enemy = Players[(PlayerNumber + 1) % 2];
-		MyTurn = player.MyTurn;
-		rnd = Random.Range(0, 100);
+		game = GameObject.Find("GameController").GetComponent<Game>();
+        PlayerNumber = GamePlayerNumber.num;
+        if(GameObject.Find("GameController") != null)
+        {
+			Players = GameObject.Find("GameController").GetComponent<Game>().Player;
+		}
+		
+		//MyTurn = player.MyTurn;
+		IsFirst = true;
+		First1 = true;
+		InvokeRepeating("UpdateProperties", 10, 1);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
-		/*
-		if (enemyCardScript == null)
-		{
-			GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-			for(int i = 0;i < players.Length; i++)
-            {
-				if (!players[i].GetComponent<PhotonView>().IsMine)
-				{
-					enemyCardScript = players[i].GetComponent<UserCardScript>();
-					enemyCard = players[i];
-				}
-
-			}	
+		if ((Players[0] != null && Players[1] != null) && (Players[0].Enemy == null || Players[1].Enemy == null))
+        {
+			if (Players[0] != null) Players[0].Enemy = Players[1];
+			if (Players[1] != null) Players[1].Enemy = Players[0];
 		}
-		if (enemyCardScript != null && !IsFirst && enemyCardScript.IsChanged)
-		{
-			Players = NowPlayer();
-			enemyCard.GetComponent<PhotonView>().RPC("SetFalse", RpcTarget.All);
-		}*/
-		if (IsFirst && Players[PlayerNumber].HandCard.Count >= 5)
+
+		if(PlayerNumber == 1 && First1 && Players[0].DeckCount == 0)
         {
-			ExitGames.Client.Photon.Hashtable hash = PhotonNetwork.CurrentRoom.CustomProperties;
-			hash.Add("Player" + PlayerNumber, Players[PlayerNumber]);
-			Debug.Log("HERE");
-			PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
-			Debug.Log("OWATA");
-			//Players[(PlayerNumber + 1)%2] = enemyCardScript.FirstPlayer();
-			IsFirst = false;
+			First();
         }
-        /*
-		if(enemy.HandCard != null)
-		{
-			for(int i = 0;i < enemy.HandCard.Count; i++)
-            {
-				Debug.Log(enemy.HandCard[i].MarkString + " " + enemy.HandCard[i].num);
-            }
-		}*/
-        if (IsChanged)
+        if (PlayerNumber == 1 && First1 && Players[0].DeckCount != 0)
         {
-			SetRoomPlayers(Players);
-			IsChanged = false;
+			First1 = false;
         }
-		MyTurn = player.MyTurn;
 	}
 
-	/*
-	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-	{
-		if (stream.IsWriting)
-		{
-			//データの送信
-			//stream.SendNext(player);
-			//stream.SendNext(enemy);
-			stream.SendNext(rnd);
-			//stream.SendNext(Players);
-			stream.SendNext(IsChanged);
-			
-		}
-		else
-		{
-			//データの受信
-			//this.player = (GamePlayer)stream.ReceiveNext();
-			//this.enemy = (GamePlayer)stream.ReceiveNext();
-			this.rnd = (int)stream.ReceiveNext();
-			//this.Players = (GamePlayer[])stream.ReceiveNext();
-			this.IsChanged = (bool)stream.ReceiveNext();
-			
-		}
-	}*/
+	public void UpdateProperties()
+    {
+		OnRoomPropertiesUpdate(PhotonNetwork.CurrentRoom.CustomProperties);
+
+	}
+
+	public void First()
+    {
+		ExitGames.Client.Photon.Hashtable hash;
+		hash = PhotonNetwork.CurrentRoom.CustomProperties;
+		hash["Player" + PlayerNumber] = Players[PlayerNumber];
+		hash["Name" + PlayerNumber] = UserName.Name;
+		PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
+		IsFirst = false;
+	}
+
 
 	public void SetRoomPlayers(GamePlayer[] players)
 	{
-		var hash = new ExitGames.Client.Photon.Hashtable();
-		hash.Add("rnd", rnd);
-		hash.Add("Player0", players[0]);
-		hash.Add("Player1", players[1]);
-		//hash.Add("IsChanged", IsChanged);
-		//properties.Add("Sender", PhotonNetwork.player.ID);
+		ExitGames.Client.Photon.Hashtable hash = new ExitGames.Client.Photon.Hashtable();
+		for(int i = 0;i < 2; i++)
+        {
+			if (Name[i] != null) hash.Add("Name" + i, Name[i]);
+        }
+		if(players[0] != null)hash.Add("Player0", players[0]);
+		if(players[1] != null && PhotonNetwork.PlayerList.Length >= 2) hash.Add("Player1", players[1]);
 		PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
 	}
 
-	public void OnPhotonCustomRoomPropertiesChanged(ExitGames.Client.Photon.Hashtable i_propertiesThatChanged)
+    public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable i_propertiesThatChanged)
 	{
 		{
 			object value = null;
-			if(i_propertiesThatChanged.TryGetValue("rnd", out value))
-			{
-				rnd = (int)value;
-			}
-			value = null;
 			if (i_propertiesThatChanged.TryGetValue("Player0", out value))
 			{
 				Players[0] = (GamePlayer)value;
 			}
-			value = null;
+		}
+		{
+			object value = null;
 			if (i_propertiesThatChanged.TryGetValue("Player1", out value))
 			{
 				Players[1] = (GamePlayer)value;
 			}
 		}
+		{
+			object value = null;
+			if (i_propertiesThatChanged.TryGetValue("Name0", out value))
+			{
+				Name[0] = (string)value;
+			}
+		}
+		{
+			object value = null;
+			if (i_propertiesThatChanged.TryGetValue("Name1", out value))
+			{
+				Name[1] = (string)value;
+			}
+		}
+
+		if (Players[0] != null)Players[0].Enemy = Players[1];
+		if(Players[1] != null)Players[1].Enemy = Players[0];
+		game.ReceivePlayer(Players);
 	}
 
 
@@ -149,11 +126,6 @@ public class UserCardScript : MonoBehaviourPun, IPunObservable/*Callbacks*/
 		return Players;
     }
 
-	[PunRPC]
-	public void SetFalse()
-    {
-		IsChanged = false;
-    }
 
 	public GamePlayer FirstPlayer()
     {
@@ -163,30 +135,21 @@ public class UserCardScript : MonoBehaviourPun, IPunObservable/*Callbacks*/
 
 	public void SetPlayer(GamePlayer[] players)
     {
-		Players = players;
-		player = Players[PlayerNumber];
-		enemy = Players[(PlayerNumber + 1) % 2];
-		IsChanged = true;
+		if (IsFirst && Players[PlayerNumber] != null && Players[PlayerNumber].HandCard.Count >= 5 && PhotonNetwork.CurrentRoom != null && PhotonNetwork.PlayerList.Length >= 2)
+		{
+			ExitGames.Client.Photon.Hashtable hash;
+			hash = PhotonNetwork.CurrentRoom.CustomProperties;
+			hash["Player" + PlayerNumber] = Players[PlayerNumber];
+			hash["Name"+PlayerNumber] = UserName.Name;
+			PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
+			//Players[(PlayerNumber + 1)%2] = enemyCardScript.FirstPlayer();
+			OnRoomPropertiesUpdate(PhotonNetwork.CurrentRoom.CustomProperties);
+			IsFirst = false;
+        }
+        else if(Players[PlayerNumber] != null && PhotonNetwork.CurrentRoom != null && PhotonNetwork.PlayerList.Length >= 2)
+		{
+			Players = players;
+			SetRoomPlayers(Players);
+		}
     }
-
-    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-		//throw new System.NotImplementedException();
-		if (stream.IsWriting)
-		{
-			//データの送信
-			//stream.SendNext(player);
-			//stream.SendNext(enemy);
-			stream.SendNext(Players);
-			stream.SendNext(rnd);
-		}
-		else
-		{
-			//データの受信
-			//this.player = (GamePlayer)stream.ReceiveNext();
-			//this.enemy = (GamePlayer)stream.ReceiveNext();
-			this.Players = (GamePlayer[])stream.ReceiveNext();
-			this.rnd = (int)stream.ReceiveNext();
-		}
-	}
 }
